@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0b0f12">
+<title>HouseTech Etiquetas</title>
+<style>
+:root{--bg:#0b0f12;--card:#12181d;--card2:#182127;--border:#26323a;--text:#f4f7f8;--muted:#94a3ad;--accent:#b8e51b;--danger:#ff6b6b}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--text)}
+button,input,select{font:inherit}.app{max-width:1240px;margin:auto;padding:18px}.top{display:flex;align-items:center;gap:12px;margin-bottom:18px}.mark{width:46px;height:46px;border-radius:13px;background:var(--accent);color:#101400;font-weight:900;display:grid;place-items:center}.brand{font-size:21px;font-weight:900;letter-spacing:.8px}.brand b{color:var(--accent)}.sub{font-size:12px;color:var(--muted)}
+.hero,.panel{background:linear-gradient(180deg,#141b20,#10161a);border:1px solid var(--border);border-radius:18px;padding:18px}.hero h1{font-size:clamp(26px,5vw,48px);line-height:1.02;margin:10px 0}.hero p{color:var(--muted);max-width:760px}.badge{display:inline-block;border:1px solid #3b4b54;border-radius:999px;padding:7px 10px;font-size:11px;color:#cbd5da}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}.toolbar{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0}.btn{border:1px solid var(--border);background:var(--card2);color:var(--text);padding:11px 14px;border-radius:12px;font-weight:800;cursor:pointer}.btn.primary{background:var(--accent);color:#111600;border-color:var(--accent)}.btn.danger{background:#351a1d;border-color:#6b3035}.btn.small{padding:7px 9px;font-size:12px}
+label{display:block;color:var(--muted);font-size:12px;margin-bottom:6px}.field{margin-bottom:12px}input,select{width:100%;background:#0f1519;color:var(--text);border:1px solid var(--border);border-radius:11px;padding:11px 12px;outline:none}input:focus,select:focus{border-color:#7b9c0c}
+.sectionTitle{display:flex;justify-content:space-between;align-items:center;margin:20px 0 10px}.sectionTitle h2{font-size:18px;margin:0}.cards{display:grid;gap:10px}.project,.circuit{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:13px}.project{cursor:pointer}.meta{font-size:12px;color:var(--muted);margin-top:4px}.circuit{display:grid;grid-template-columns:7px 80px 1fr auto;align-items:center;gap:10px}.dot{width:7px;height:36px;border-radius:99px}.code{font-size:12px;font-weight:900;color:#cbd5da}.name{font-weight:800}.empty{color:var(--muted);padding:24px;text-align:center;border:1px dashed var(--border);border-radius:14px}
+.tabs{display:flex;gap:8px;overflow:auto;padding-bottom:4px}.tab{white-space:nowrap}
+.previewWrap{overflow:auto;background:#e7e8e5;border-radius:14px;padding:18px}.sheet{background:#fff;color:#111;width:210mm;min-height:297mm;padding:10mm;transform-origin:top left}.sheetHead{border-bottom:.4mm solid #111;padding-bottom:3mm;margin-bottom:5mm}.sheetBrand{font-size:14pt;font-weight:900}.sheetBrand span{color:#6e8a00}.sheetMeta{font-size:8pt;color:#444;margin-top:1.5mm}.labels{display:grid;gap:2mm;align-items:start}.labelPrint{position:relative;display:flex;align-items:center;border:.35mm solid #222;overflow:hidden;background:#fff}.stripe{width:2.4mm;align-self:stretch;flex:none}.labelCode{font-weight:900;font-size:7pt;width:10mm;padding-left:1.4mm}.labelName{font-weight:800;font-size:7pt;line-height:1.05;padding-right:1.2mm;flex:1}.hide{display:none!important}.notice{background:#10161a;border:1px solid var(--border);border-radius:12px;padding:10px 12px;color:var(--muted);font-size:12px}
+@media(max-width:800px){.grid2{grid-template-columns:1fr}.circuit{grid-template-columns:7px 62px 1fr}.circuit .actions{grid-column:2/4}.sheet{transform:scale(.55);margin-bottom:-134mm}.previewWrap{height:520px}}
+@media print{body{background:#fff}.app>*:not(#printArea){display:none!important}#printArea{display:block!important}.previewWrap{padding:0;background:#fff;overflow:visible}.sheet{width:auto;min-height:auto;padding:0;transform:none!important;margin:0!important}.sheetHead{display:block}.labelPrint{page-break-inside:avoid}@page{size:A4;margin:10mm}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="top"><div class="mark">HT</div><div><div class="brand">HOUSE<b>TECH</b></div><div class="sub">Etiquetas profissionais • Web</div></div></div>
+
+  <section id="home">
+    <div class="hero">
+      <span class="badge">HOUSETECH • ETIQUETAS • WEB</span>
+      <h1>Etiquetas de quadro, prontas para imprimir.</h1>
+      <p>Cadastre clientes e obras, organize quadros e circuitos, defina as medidas reais em milímetros e imprima em A4 com escala 100%.</p>
+      <button class="btn primary" onclick="newProject()">+ Novo projeto</button>
+    </div>
+    <div class="sectionTitle"><h2>Projetos salvos</h2><span class="meta">salvos neste navegador</span></div>
+    <div id="projectList" class="cards"></div>
+  </section>
+
+  <section id="editor" class="hide">
+    <div class="toolbar"><button class="btn" onclick="goHome()">← Projetos</button><button class="btn primary" onclick="addBoard()">+ Quadro</button><button class="btn" onclick="window.print()">Gerar PDF / Imprimir</button><button class="btn danger" onclick="deleteProject()">Excluir projeto</button></div>
+    <div class="panel">
+      <div class="sectionTitle" style="margin-top:0"><div><h2 id="projectTitle"></h2><div id="projectMeta" class="meta"></div></div></div>
+      <div id="boardTabs" class="tabs"></div>
+    </div>
+
+    <div class="grid2">
+      <div class="panel">
+        <h2 style="margin-top:0">Configuração</h2>
+        <div class="grid2">
+          <div class="field"><label>Nome do quadro</label><input id="boardName" oninput="updateBoardField('name',this.value)"></div>
+          <div class="field"><label>Local</label><input id="boardLocation" oninput="updateBoardField('location',this.value)"></div>
+          <div class="field"><label>Largura da etiqueta (mm)</label><input id="widthMm" type="number" step="0.5" oninput="updateBoardField('widthMm',Number(this.value)||1)"></div>
+          <div class="field"><label>Altura da etiqueta (mm)</label><input id="heightMm" type="number" step="0.5" oninput="updateBoardField('heightMm',Number(this.value)||1)"></div>
+          <div class="field"><label>Colunas no A4</label><select id="columns" onchange="updateBoardField('columns',Number(this.value))"><option>1</option><option>2</option><option>3</option><option selected>4</option><option>5</option></select></div>
+        </div>
+        <div class="notice">Na impressão, use escala 100% e desative “Ajustar à página” para preservar as medidas.</div>
+      </div>
+
+      <div class="panel">
+        <h2 style="margin-top:0">Adicionar circuito</h2>
+        <div class="field"><label>Descrição</label><input id="circuitName" placeholder="Ex.: Iluminação Living"></div>
+        <div class="field"><label>Categoria</label><select id="circuitCategory"></select></div>
+        <button class="btn primary" onclick="addCircuit()">+ Adicionar circuito</button>
+      </div>
+    </div>
+
+    <div class="sectionTitle"><h2 id="circuitTitle">Circuitos</h2></div>
+    <div id="circuitList" class="cards"></div>
+
+    <div class="sectionTitle"><h2>Pré-visualização A4</h2></div>
+    <div id="printArea" class="previewWrap"><div class="sheet">
+      <div class="sheetHead">
+        <div class="sheetBrand">HOUSE<span>TECH</span> • ETIQUETAS</div>
+        <div id="sheetMeta" class="sheetMeta"></div>
+        <div id="sheetSize" class="sheetMeta"></div>
+      </div>
+      <div id="labels" class="labels"></div>
+    </div></div>
+  </section>
+</div>
+
+<script>
+const KEY='housetech-etiquetas-web-v1';
+const categories=['Iluminação','Tomadas','Climatização','Chuveiro','Automação','Rede/CFTV','Outros'];
+const colors={'Iluminação':'#FFD166','Tomadas':'#5AB0FF','Climatização':'#74E0D1','Chuveiro':'#FF8A65','Automação':'#B8E51B','Rede/CFTV':'#BB86FC','Outros':'#C5CDD3'};
+let projects=load(),selectedProjectId=null,selectedBoardId=null;
+
+function id(){return Date.now().toString(36)+Math.random().toString(36).slice(2)}
+function now(){return new Date().toISOString()}
+function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+function load(){try{return JSON.parse(localStorage.getItem(KEY)||'[]')}catch{return[]}}
+function save(){localStorage.setItem(KEY,JSON.stringify(projects))}
+function codeFor(i){return 'C'+String(i+1).padStart(2,'0')}
+function boardDefault(name='QD-01'){return{id:id(),name,location:'Quadro principal',widthMm:38,heightMm:12,columns:4,circuits:[]}}
+function currentProject(){return projects.find(p=>p.id===selectedProjectId)}
+function currentBoard(){const p=currentProject();return p?.boards.find(b=>b.id===selectedBoardId)||p?.boards[0]}
+function touch(){const p=currentProject();if(p)p.updatedAt=now();save();renderEditor()}
+
+function newProject(){
+ const client=prompt('Nome do cliente:'); if(!client)return;
+ const work=prompt('Nome da obra:'); if(!work)return;
+ const p={id:id(),client:client.trim(),work:work.trim(),createdAt:now(),updatedAt:now(),boards:[boardDefault()]};
+ projects.unshift(p);save();openProject(p.id);
+}
+function openProject(pid){selectedProjectId=pid;const p=currentProject();selectedBoardId=p.boards[0]?.id;document.getElementById('home').classList.add('hide');document.getElementById('editor').classList.remove('hide');renderEditor()}
+function goHome(){document.getElementById('editor').classList.add('hide');document.getElementById('home').classList.remove('hide');renderProjects()}
+function deleteProject(){const p=currentProject();if(!p||!confirm('Excluir este projeto?'))return;projects=projects.filter(x=>x.id!==p.id);save();goHome()}
+function addBoard(){const p=currentProject();if(!p)return;const b=boardDefault('QD-'+String(p.boards.length+1).padStart(2,'0'));p.boards.push(b);selectedBoardId=b.id;touch()}
+function selectBoard(bid){selectedBoardId=bid;renderEditor()}
+function updateBoardField(k,v){const b=currentBoard();if(!b)return;b[k]=v;const p=currentProject();p.updatedAt=now();save();renderEditor(false)}
+function addCircuit(){const b=currentBoard();const input=document.getElementById('circuitName');const cat=document.getElementById('circuitCategory').value;if(!b||!input.value.trim())return;b.circuits.push({id:id(),code:codeFor(b.circuits.length),name:input.value.trim(),category:cat});input.value='';touch()}
+function duplicateCircuit(cid){const b=currentBoard();const c=b.circuits.find(x=>x.id===cid);if(!c)return;b.circuits.push({...c,id:id(),code:codeFor(b.circuits.length)});touch()}
+function deleteCircuit(cid){const b=currentBoard();b.circuits=b.circuits.filter(x=>x.id!==cid).map((c,i)=>({...c,code:codeFor(i)}));touch()}
+
+function renderProjects(){
+ const el=document.getElementById('projectList');
+ if(!projects.length){el.innerHTML='<div class="empty">Nenhum projeto ainda. Clique em “Novo projeto”.</div>';return}
+ el.innerHTML=projects.map(p=>'<div class="project" onclick="openProject(\''+p.id+'\')"><b>'+esc(p.client)+'</b><div>'+esc(p.work)+'</div><div class="meta">'+p.boards.length+' quadro(s) • atualizado '+new Date(p.updatedAt).toLocaleDateString('pt-BR')+'</div></div>').join('');
+}
+function renderEditor(full=true){
+ const p=currentProject(),b=currentBoard();if(!p||!b)return;
+ document.getElementById('projectTitle').textContent=p.client;
+ document.getElementById('projectMeta').textContent=p.work;
+ document.getElementById('boardTabs').innerHTML=p.boards.map(x=>'<button class="btn small tab '+(x.id===b.id?'primary':'')+'" onclick="selectBoard(\''+x.id+'\')">'+esc(x.name)+'</button>').join('');
+ if(full){
+  document.getElementById('boardName').value=b.name;
+  document.getElementById('boardLocation').value=b.location;
+  document.getElementById('widthMm').value=b.widthMm;
+  document.getElementById('heightMm').value=b.heightMm;
+  document.getElementById('columns').value=b.columns;
+ }
+ document.getElementById('circuitTitle').textContent='Circuitos ('+b.circuits.length+')';
+ document.getElementById('circuitList').innerHTML=b.circuits.length?b.circuits.map(c=>'<div class="circuit"><div class="dot" style="background:'+colors[c.category]+'"></div><div class="code">'+esc(c.code)+'<div class="meta">'+esc(c.category)+'</div></div><div class="name">'+esc(c.name)+'</div><div class="actions"><button class="btn small" onclick="duplicateCircuit(\''+c.id+'\')">Duplicar</button> <button class="btn small danger" onclick="deleteCircuit(\''+c.id+'\')">Excluir</button></div></div>').join(''):'<div class="empty">Adicione os circuitos deste quadro.</div>';
+ document.getElementById('sheetMeta').textContent='Cliente: '+p.client+' | Obra: '+p.work+' | Quadro: '+b.name+' — '+b.location;
+ document.getElementById('sheetSize').textContent='Etiqueta: '+b.widthMm+' × '+b.heightMm+' mm • Impressão em escala 100%';
+ const labels=document.getElementById('labels');labels.style.gridTemplateColumns='repeat('+Math.max(1,b.columns)+','+b.widthMm+'mm)';
+ labels.innerHTML=b.circuits.map(c=>'<div class="labelPrint" style="width:'+b.widthMm+'mm;height:'+b.heightMm+'mm;border-color:'+colors[c.category]+'"><div class="stripe" style="background:'+colors[c.category]+'"></div><div class="labelCode">'+esc(c.code)+'</div><div class="labelName">'+esc(c.name)+'</div></div>').join('');
+}
+document.getElementById('circuitCategory').innerHTML=categories.map(c=>'<option>'+c+'</option>').join('');
+renderProjects();
+</script>
+</body>
+</html>
