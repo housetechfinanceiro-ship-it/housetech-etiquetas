@@ -88,6 +88,7 @@ input:focus,select:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(59,2
  .sheetLogo{filter:invert(1)}.labelPrint{page-break-inside:avoid}@page{size:A4;margin:10mm}
 }
 </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 <div class="shell">
@@ -95,7 +96,7 @@ input:focus,select:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(59,2
     <img src="logo-house-tech.svg" class="logo" alt="HouseTech Soluções Inteligentes">
     <div class="top-actions">
       <span class="status"><i></i> Dados salvos neste navegador</span>
-      <button class="btn ghost" onclick="showCloud()">Entrar / Nuvem</button>
+      <button id="cloudBtn" class="btn ghost" onclick="showCloud()">Entrar / Nuvem</button>
     </div>
   </header>
 
@@ -177,15 +178,34 @@ input:focus,select:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(59,2
 <div id="cloudModal" class="modalBack hide" onclick="if(event.target===this)hideCloud()">
   <div class="modal">
     <div class="kicker">HouseTech Cloud</div>
-    <h3>Sincronização entre PC e celular</h3>
-    <p>Esta interface já está preparada para login e banco em nuvem. Enquanto a conta de banco não for criada, seus projetos continuam funcionando normalmente e ficam salvos neste navegador.</p>
-    <div class="notice">Quando ativarmos a nuvem: login por e-mail e senha, projetos sincronizados, acesso por equipe e histórico preservado.</div>
-    <div class="modal-actions"><button class="btn" onclick="hideCloud()">Fechar</button></div>
+    <h3 id="cloudTitle">Sincronização entre PC e celular</h3>
+    <p id="cloudDesc">Entre com seu e-mail e senha para sincronizar projetos entre seus dispositivos.</p>
+    <div id="authForm">
+      <div class="field"><label>E-mail</label><input id="authEmail" type="email" placeholder="seuemail@exemplo.com"></div>
+      <div class="field"><label>Senha</label><input id="authPassword" type="password" placeholder="Mínimo 6 caracteres"></div>
+      <div id="authMsg" class="notice" style="margin-top:8px">Se for seu primeiro acesso, use “Criar conta”. O Supabase pode solicitar confirmação por e-mail.</div>
+      <div class="modal-actions">
+        <button class="btn" onclick="hideCloud()">Fechar</button>
+        <button class="btn" onclick="signUpCloud()">Criar conta</button>
+        <button class="btn primary" onclick="signInCloud()">Entrar</button>
+      </div>
+    </div>
+    <div id="signedInBox" class="hide">
+      <div id="signedEmail" class="notice"></div>
+      <div class="modal-actions">
+        <button class="btn" onclick="hideCloud()">Fechar</button>
+        <button class="btn danger" onclick="signOutCloud()">Sair da conta</button>
+      </div>
+    </div>
   </div>
 </div>
 
 <script>
 const KEY='housetech-etiquetas-web-v2';
+const SUPABASE_URL='https://qwcfwormkyhsuhaivigy.supabase.co';
+const SUPABASE_KEY='sb_publishable_TVQpxgZzjm9a3Kln-bbnXA_ksOXnZ8S';
+const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+let cloudUser=null, cloudTimer=null;
 const OLDKEY='housetech-etiquetas-web-v1';
 const categories=['Iluminação','Tomadas','Climatização','Chuveiro','Automação','Rede/CFTV','Áudio/Vídeo','Outros'];
 const colors={'Iluminação':'#FFD166','Tomadas':'#5AB0FF','Climatização':'#74E0D1','Chuveiro':'#FF8A65','Automação':'#3BDEED','Rede/CFTV':'#BB86FC','Áudio/Vídeo':'#FF6FAE','Outros':'#C5CDD3'};
@@ -203,7 +223,7 @@ function load(){
   }catch(e){}
   return[]
 }
-function save(){localStorage.setItem(KEY,JSON.stringify(projects));renderStats()}
+function save(){localStorage.setItem(KEY,JSON.stringify(projects));renderStats();scheduleCloudSync()}
 function codeFor(i){return 'C'+String(i+1).padStart(2,'0')}
 function boardDefault(name='QD-01'){return{id:id(),name,location:'Quadro principal',widthMm:38,heightMm:12,columns:4,circuits:[]}}
 function currentProject(){return projects.find(p=>p.id===selectedProjectId)}
@@ -267,8 +287,100 @@ function renderEditor(full=true){
  labels.style.gridTemplateColumns='repeat('+Math.max(1,b.columns)+','+b.widthMm+'mm)';
  labels.innerHTML=b.circuits.map(c=>'<div class="labelPrint" style="width:'+b.widthMm+'mm;height:'+b.heightMm+'mm;border-color:'+colors[c.category]+'"><div class="stripe" style="background:'+colors[c.category]+'"></div><div class="labelCode">'+esc(c.code)+'</div><div class="labelName">'+esc(c.name)+'</div></div>').join('')
 }
-function showCloud(){cloudModal.classList.remove('hide')}
+function showCloud(){cloudModal.classList.remove('hide');renderAuthState()}
 function hideCloud(){cloudModal.classList.add('hide')}
+function setAuthMsg(msg){const el=document.getElementById('authMsg');if(el)el.textContent=msg}
+function renderAuthState(){
+ const logged=!!cloudUser;
+ document.getElementById('authForm').classList.toggle('hide',logged);
+ document.getElementById('signedInBox').classList.toggle('hide',!logged);
+ document.getElementById('cloudTitle').textContent=logged?'HouseTech Cloud conectado':'Sincronização entre PC e celular';
+ document.getElementById('cloudDesc').textContent=logged?'Seus projetos são sincronizados automaticamente com sua conta.':'Entre com seu e-mail e senha para sincronizar projetos entre seus dispositivos.';
+ if(logged)document.getElementById('signedEmail').textContent='Conectado como: '+(cloudUser.email||'usuário');
+ const btn=document.getElementById('cloudBtn');
+ if(btn)btn.textContent=logged?'Nuvem conectada ✓':'Entrar / Nuvem';
+ const status=document.querySelector('.status');
+ if(status){status.innerHTML=logged?'<i style="background:#3bdeed"></i> Sincronizado na nuvem':'<i></i> Dados salvos neste navegador'}
+}
+async function signUpCloud(){
+ const email=authEmail.value.trim(),password=authPassword.value;
+ if(!email||password.length<6){setAuthMsg('Informe um e-mail válido e uma senha com pelo menos 6 caracteres.');return}
+ setAuthMsg('Criando conta...');
+ const {data,error}=await sb.auth.signUp({email,password});
+ if(error){setAuthMsg(error.message);return}
+ if(data.session){cloudUser=data.user;await afterCloudLogin();hideCloud()}
+ else setAuthMsg('Conta criada. Confira seu e-mail para confirmar o cadastro e depois entre novamente.')
+}
+async function signInCloud(){
+ const email=authEmail.value.trim(),password=authPassword.value;
+ if(!email||!password){setAuthMsg('Informe e-mail e senha.');return}
+ setAuthMsg('Entrando...');
+ const {data,error}=await sb.auth.signInWithPassword({email,password});
+ if(error){setAuthMsg(error.message);return}
+ cloudUser=data.user;await afterCloudLogin();hideCloud()
+}
+async function signOutCloud(){await sb.auth.signOut();cloudUser=null;renderAuthState();hideCloud()}
+function scheduleCloudSync(){
+ if(!cloudUser)return;
+ clearTimeout(cloudTimer);
+ cloudTimer=setTimeout(()=>syncAllToCloud().catch(console.error),900)
+}
+async function afterCloudLogin(){
+ renderAuthState();
+ const remote=await loadCloudProjects();
+ if(remote.length){
+   projects=remote;localStorage.setItem(KEY,JSON.stringify(projects));renderProjects();
+initCloud();
+ }else if(projects.length){
+   await syncAllToCloud();
+ }
+}
+async function loadCloudProjects(){
+ if(!cloudUser)return[];
+ const {data:ps,error:pe}=await sb.from('projects').select('*').order('updated_at',{ascending:false});
+ if(pe)throw pe;
+ const {data:bs,error:be}=await sb.from('boards').select('*').order('sort_order');
+ if(be)throw be;
+ const {data:cs,error:ce}=await sb.from('circuits').select('*').order('sort_order');
+ if(ce)throw ce;
+ return (ps||[]).map(p=>({
+   id:p.id,client:p.client,work:p.work,createdAt:p.created_at,updatedAt:p.updated_at,
+   boards:(bs||[]).filter(b=>b.project_id===p.id).map(b=>({
+     id:b.id,name:b.name,location:b.location,widthMm:Number(b.width_mm),heightMm:Number(b.height_mm),columns:b.columns_count,
+     circuits:(cs||[]).filter(c=>c.board_id===b.id).map(c=>({id:c.id,code:c.code,name:c.name,category:c.category}))
+   }))
+ }))
+}
+async function syncAllToCloud(){
+ if(!cloudUser)return;
+ for(const p of projects)await syncProjectToCloud(p);
+ const ids=projects.map(p=>p.id);
+ const {data:remote}=await sb.from('projects').select('id');
+ for(const r of (remote||[])){if(!ids.includes(r.id))await sb.from('projects').delete().eq('id',r.id)}
+ renderAuthState()
+}
+async function syncProjectToCloud(p){
+ const uid=cloudUser.id;
+ const {error:pe}=await sb.from('projects').upsert({id:p.id,user_id:uid,client:p.client,work:p.work,created_at:p.createdAt||now(),updated_at:p.updatedAt||now()});
+ if(pe)throw pe;
+ await sb.from('boards').delete().eq('project_id',p.id);
+ for(let bi=0;bi<p.boards.length;bi++){
+   const b=p.boards[bi];
+   const {error:be}=await sb.from('boards').insert({id:b.id,project_id:p.id,user_id:uid,name:b.name,location:b.location||'',width_mm:b.widthMm,height_mm:b.heightMm,columns_count:b.columns,sort_order:bi});
+   if(be)throw be;
+   for(let ci=0;ci<b.circuits.length;ci++){
+     const c=b.circuits[ci];
+     const {error:ce}=await sb.from('circuits').insert({id:c.id,board_id:b.id,project_id:p.id,user_id:uid,code:c.code,name:c.name,category:c.category,sort_order:ci});
+     if(ce)throw ce;
+   }
+ }
+}
+async function initCloud(){
+ const {data:{session}}=await sb.auth.getSession();
+ cloudUser=session?.user||null;renderAuthState();
+ if(cloudUser){try{await afterCloudLogin()}catch(e){console.error(e)}}
+ sb.auth.onAuthStateChange((_event,session)=>{cloudUser=session?.user||null;renderAuthState()})
+}
 circuitCategory.innerHTML=categories.map(c=>'<option>'+c+'</option>').join('');
 renderProjects();
 </script>
